@@ -2,12 +2,9 @@ package android.fasa.edu.br.gpsapplicationandroid;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
@@ -20,6 +17,7 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -38,6 +36,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private FusedLocationProviderClient fusedLocationClient;
     private GoogleApiClient googleApiClient;
     private Double lat, lng;
+    private LocationCallback locationCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,19 +55,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        // Solicita as permissões
+        // Array permissões
         String[] permissions = new String[]{
                 Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.ACCESS_COARSE_LOCATION,
                 Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_NETWORK_STATE,
         };
 
         // Verifica e solicita permissões de acesso
         PermissionsUtil.validate(this, 0, permissions);
         // Latitude e Longitude Cidade Montes Claros
         // Definida de forma estática e exibida na carga do mapa
-        lat = -16.7280803;
-        lng = -43.9211237;
+
+        lat = -16.7238229;
+        lng = -43.8735205;
 
     }
 
@@ -126,17 +127,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         locationRequest.setFastestInterval(5000);
         //Define a prioridade para uma localização mais precisa
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        LocationServices
-                .FusedLocationApi
+
+        fusedLocationClient
                 .requestLocationUpdates
-                        (googleApiClient,
-                                locationRequest,this);
+                        (locationRequest,locationCallback, null);
     }
 
     protected void stopLocationUpdates(){
-        LocationServices
-                .FusedLocationApi
-                .removeLocationUpdates(googleApiClient,this);
+        fusedLocationClient.removeLocationUpdates(locationCallback);
     }
 
     @Override
@@ -155,7 +153,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult
+            (int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         for (int result : grantResults) {
@@ -168,17 +167,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    @Override
-    public void onLocationChanged(Location location) {
-        lat = location.getLatitude();
-        lng = location.getLongitude();
-        Toast.makeText(this,"lat "+ lat +" long "+lng,Toast.LENGTH_LONG).show();
+    private void getLocationUpdates(){
+        locationCallback = new LocationCallback(){
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                super.onLocationResult(locationResult);
+                if(locationResult == null){
+                    return;
+                }
 
+                for(Location location : locationResult.getLocations()){
+                    lat = location.getLatitude();
+                    lng = location.getLongitude();
+                    Toast.makeText(getApplicationContext(),
+                            "lat "+ lat +" long " +
+                                    lng,Toast.LENGTH_LONG).show();
+
+                }
+            }
+        };
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        getLocationUpdates();
 
     }
 
@@ -186,5 +199,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onPause() {
         super.onPause();
         stopLocationUpdates();
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
     }
 }
