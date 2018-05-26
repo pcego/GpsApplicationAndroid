@@ -52,7 +52,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
-
+        // Carregando o serviço de localização
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         // Array permissões
@@ -73,13 +73,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    //Anotação para suprimir a verificação de permissões
+
     @SuppressLint("MissingPermission")
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
         mMap = googleMap;
 
+        // Capturando a última Localização conhecida
         fusedLocationClient.getLastLocation().
                 addOnSuccessListener(this, new OnSuccessListener<Location>() {
                 @Override
@@ -89,7 +90,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             });
 
-        // Add a marker in Sydney and move the camera
+        // Definindo a localização e criando um marcador no mapa
         LatLng moc = new LatLng(lat, lng);
         mMap.setMyLocationEnabled(true);
         mMap.addMarker(new MarkerOptions().position(moc).title("Montes Claros-MG"));
@@ -128,12 +129,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Define a prioridade para uma localização mais precisa
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
+        // Inicializando atualizações de localização do GPS
         fusedLocationClient
                 .requestLocationUpdates
                         (locationRequest,locationCallback, null);
     }
 
     protected void stopLocationUpdates(){
+        // Parando as atualizações do GPS
         fusedLocationClient.removeLocationUpdates(locationCallback);
     }
 
@@ -166,7 +169,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Log.d("ok", "permissões");
 
     }
-
+    // Atualizando localização do dispositivo
     private void getLocationUpdates(){
         locationCallback = new LocationCallback(){
             @Override
@@ -191,6 +194,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onResume() {
         super.onResume();
+        // Atualiza localização do dispositivo quando o mapa estiver visivel
         getLocationUpdates();
 
     }
@@ -198,6 +202,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onPause() {
         super.onPause();
+        // Para as atualizações de localização
         stopLocationUpdates();
     }
 
