@@ -2,9 +2,15 @@ package android.fasa.edu.br.gpsapplicationandroid;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
@@ -37,6 +43,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleApiClient googleApiClient;
     private Double lat, lng;
     private LocationCallback locationCallback;
+    private int resultCode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -194,6 +201,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onResume() {
         super.onResume();
+        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        Boolean isGpsActive = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        Log.d("GPS", ""+isGpsActive);
+
+        if(!isGpsActive){
+
+            AlertDialog.Builder message = new AlertDialog.Builder(this);
+            message.setTitle(R.string.title_message);
+            message.setMessage(R.string.message_text);
+            message.setPositiveButton(R.string.positive_button_text,
+                    new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    Intent it = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                    startActivityForResult(it,0);
+
+                    if(resultCode == 0){
+                        dialog.dismiss();
+                    }
+
+
+                }
+            });
+
+            message.setNegativeButton(R.string.negative_button_text,
+                    new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+            message.create().show();
+        }
+
         // Atualiza localização do dispositivo quando o mapa estiver visivel
         getLocationUpdates();
 
@@ -204,6 +245,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onPause();
         // Para as atualizações de localização
         stopLocationUpdates();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        this.resultCode = resultCode;
     }
 
     @Override

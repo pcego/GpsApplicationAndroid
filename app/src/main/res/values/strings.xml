@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">MapsFasa</string>
     <string name="title_activity_maps">Map</string>
+    <string name="title_message">GPS</string>
+    <string name="positive_button_text">Ativar GPS</string>
+    <string name="negative_button_text">Sair</string>
+    <string name="message_text">Ative o serviço de localização do seu dispositivo para o correto funciomamento do aplicativo</string>
 </resources>
